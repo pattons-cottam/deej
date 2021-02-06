@@ -3,6 +3,10 @@
 
 const int NUM_ENCODERS = 2;
 
+// a lower multiplier means more granular control
+const int MASTER_STEP_MULTIPLIER = 3;
+const int STEP_MULTIPLIER = 5;
+
 ClickEncoder *encoder1;
 ClickEncoder *encoder2;
 
@@ -16,8 +20,8 @@ void timerIsr()
 
 void updateEncoderValues()
 {
-  encoderValues[0] += encoder1->getValue();
-  encoderValues[1] += encoder2->getValue();
+  encoderValues[0] += encoder1->getValue() * MASTER_STEP_MULTIPLIER;
+  encoderValues[1] += encoder2->getValue() * STEP_MULTIPLIER;
 
   for (int i = 0; i < NUM_ENCODERS; i++)
   {
@@ -36,8 +40,10 @@ void updateEncoderValues()
 void setup()
 {
   Serial.begin(9600);
-  encoder1 = new ClickEncoder(A1, A0, A2); // CLK, DT, SW (button)
-  encoder2 = new ClickEncoder(A4, A3, A2); // CLK, DT, SW (button)
+
+  // ClickEncoder(CLK, DT, SW (button, not supported));
+  encoder1 = new ClickEncoder(A1, A0, A2);
+  encoder2 = new ClickEncoder(A4, A3, A2);
 
   Timer1.initialize(1000);
   Timer1.attachInterrupt(timerIsr);
@@ -46,7 +52,7 @@ void setup()
   encoder2->setAccelerationEnabled(true);
 
   // the sliders actually control their volume as a proportion of the master
-  // volume, i.e spotify.exe at 100% will be 25% on the Windows volume 
+  // volume, i.e spotify.exe at 100% will be 25% on the Windows volume
   // mixer if the master volume is set to 25%
 
   // so, with the assumption that master is always in position 0:
@@ -56,7 +62,18 @@ void setup()
 
   for (int i = 1; i < NUM_ENCODERS; i++)
   {
-    encoderValues[i] = 100;
+    READ THE FOLLOWING THEN REMOVE THIS LINE TO COMPILE
+    // uncomment this line to set all other sliders to 100% of master
+    // NOTE: if slider 0 is not set as master this could potentially blow your speakers
+    // and/or eardrums
+    // encoderValues[i] = 100;
+  }
+
+  // sanity check
+  if (STEP_MULTIPLIER < 1 || STEP_MULTIPLIER > 10 || MASTER_STEP_MULTIPLIER < 1 || MASTER_STEP_MULTIPLIER > 10)
+  {
+    STEP_MULTIPLIER = 1;
+    MASTER_STEP_MULTIPLIER = 1;
   }
 }
 
