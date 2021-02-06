@@ -45,7 +45,19 @@ void setup()
   encoder1->setAccelerationEnabled(true);
   encoder2->setAccelerationEnabled(true);
 
-  delay(10);
+  // the sliders actually control their volume as a proportion of the master
+  // volume, i.e spotify.exe at 100% will be 25% on the Windows volume 
+  // mixer if the master volume is set to 25%
+
+  // so, with the assumption that master is always in position 0:
+  // set all other sliders to be "full volume" i.e. 100% of master volume
+  // then set master to 0
+  encoderValues[0] = 0;
+
+  for (int i = 1; i < NUM_ENCODERS; i++)
+  {
+    encoderValues[i] = 100;
+  }
 }
 
 void loop()
@@ -65,4 +77,5 @@ void loop()
   }
 
   Serial.println(builtString);
+  delay(10);
 }
